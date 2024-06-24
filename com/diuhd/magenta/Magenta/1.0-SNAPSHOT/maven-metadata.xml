@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata modelVersion="1.1.0">
-  <groupId>org.example</groupId>
+  <groupId>com.diuhd.magenta</groupId>
   <artifactId>Magenta</artifactId>
   <versioning>
-    <lastUpdated>20240624085643</lastUpdated>
+    <lastUpdated>20240624113638</lastUpdated>
     <snapshot>
-      <timestamp>20240624.085643</timestamp>
+      <timestamp>20240624.113638</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
         <extension>pom</extension>
-        <value>1.0-20240624.085643-1</value>
-        <updated>20240624085643</updated>
+        <value>1.0-20240624.113638-1</value>
+        <updated>20240624113638</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>jar</extension>
-        <value>1.0-20240624.085643-1</value>
-        <updated>20240624085643</updated>
+        <value>1.0-20240624.113638-1</value>
+        <updated>20240624113638</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
