@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-  <groupId>com.diuhd.magenta</groupId>
+  <groupId>com.diuhd</groupId>
   <artifactId>Magenta</artifactId>
   <versioning>
     <versions>
       <version>1.0-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20240624113638</lastUpdated>
+    <lastUpdated>20240624113821</lastUpdated>
   </versioning>
 </metadata>
