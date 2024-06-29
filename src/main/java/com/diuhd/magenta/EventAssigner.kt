@@ -7,11 +7,12 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
-class EventAssigner<T : Event>(private val eventClass: Class<T>, private val plugin: JavaPlugin) {
+class EventAssigner<T : Event>(private val eventClass: Class<T>) {
     private var handler: (T) -> Unit = { _ -> }
     private var cancelled: Boolean = false
     private var remainingTriggers: Int? = null
     private var listener: Listener? = null
+    private val plugin: JavaPlugin = JavaPlugin.getProvidingPlugin(EventAssigner::class.java)
 
     init {
         listener = object : Listener {
