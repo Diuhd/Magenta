@@ -17,7 +17,7 @@ class EventAssigner<T : Event>(private val eventClass: Class<T>) {
     init {
         listener = object : Listener {
             @EventHandler
-            fun onEvent(event: Event) {
+            fun onEvent(event: T) {
                 if (eventClass.isInstance(event)) {
                     val typedEvent = eventClass.cast(event)
                     if (typedEvent is Cancellable && cancelled) {
