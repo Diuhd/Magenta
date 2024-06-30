@@ -31,7 +31,7 @@ class Gui(private val rows: Int, title: String) {
         player.openInventory(inventory)
     }
 
-    fun setBorder(thickness: Int) {
+    fun setBorder(thickness: Int): Gui {
         require(thickness * 2 < rows) { "Border is too thick for the number of rows!" }
         require(thickness * 2 < INVENTORY_WIDTH) { "Border is too thick for the number of columns!" }
 
@@ -47,27 +47,32 @@ class Gui(private val rows: Int, title: String) {
         }
 
         schem.apply(this, Material.GRAY_STAINED_GLASS_PANE)
+        return this
     }
 
-    fun setItem(slot: Int, item: ItemStack) {
+    fun setItem(slot: Int, item: ItemStack): Gui {
         inventory.setItem(slot, item)
+        return this
     }
 
-    fun setItem(row: Int, column: Int, item: ItemStack) {
+    fun setItem(row: Int, column: Int, item: ItemStack): Gui {
         require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
         require(column in 0 until INVENTORY_WIDTH) { "Column must be between 0 and 8" }
         setItem(row * INVENTORY_WIDTH + column, item)
+        return this
     }
 
-    fun setButton(slot: Int, button: GuiButton) {
+    fun setButton(slot: Int, button: GuiButton): Gui {
         setItem(slot, button.getItemStack())
         buttons[slot] = button
+        return this
     }
 
-    fun setButton(row: Int, column: Int, button: GuiButton) {
+    fun setButton(row: Int, column: Int, button: GuiButton): Gui {
         require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
         require(column in 0 until INVENTORY_WIDTH) { "Column must be between 0 and 8" }
         setItem(row, column, button.getItemStack())
         buttons[row * INVENTORY_WIDTH + column] = button
+        return this
     }
 }
