@@ -1,31 +1,35 @@
 package com.diuhd.magenta.gui
 
 import org.bukkit.Material
-import org.bukkit.inventory.ItemStack
 
 class Schematic {
-    private val scheme: ArrayList<String> = ArrayList()
+    companion object {
+        private const val LINE_LENGTH = 9
+    }
+
+    private val scheme: MutableList<String> = mutableListOf()
 
     fun map(line: String): Schematic {
-        require(line.length == 9) { "Map length must be 9" }
+        require(line.length == LINE_LENGTH) { "Map length must be $LINE_LENGTH" }
         scheme.add(line)
         return this
     }
 
-    private fun convertToBooleanArray(): BooleanArray {
-        val boolArray = BooleanArray(scheme.size * 9)
-        for (i in scheme.indices) {
-            for (j in scheme[i].indices) {
-                boolArray[i * 9 + j] = scheme[i][j] == '1'
+    private fun convertToBooleanArray(): BooleanArray =
+        BooleanArray(scheme.size * LINE_LENGTH).apply {
+            scheme.forEachIndexed { rowIndex, line ->
+                line.forEachIndexed { columnIndex, char ->
+                    this[rowIndex * LINE_LENGTH + columnIndex] = char == '1'
+                }
             }
         }
-        return boolArray
-    }
 
-    fun apply(gui: Gui) {
-        val boolArray: BooleanArray = convertToBooleanArray()
-        boolArray.forEachIndexed { index, bool ->
-            if (bool) gui.setItem(index, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+    fun apply(gui: Gui, material: Material) {
+        val boolArray = convertToBooleanArray()
+        boolArray.forEachIndexed { index, isBorder ->
+            if (isBorder) {
+                gui.setItem(index, ItemBuilder(material).setName(" ").setLore(" ").build())
+            }
         }
     }
 }

@@ -23,6 +23,5 @@ class Example: JavaPlugin() {
             .handler { e ->
                 e.player.sendMessage("Welcome to the server!")
             }
-
     }
 }
