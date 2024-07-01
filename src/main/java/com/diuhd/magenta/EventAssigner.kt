@@ -6,41 +6,58 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import java.lang.reflect.Method
 
-class EventAssigner<T : Event>(private val eventClass: Class<T>) {
-    private var handler: (T) -> Unit = { _ -> }
+class EventAssigner<T : Event>(private val eventClass: Class<T>) : Listener {
+    private var handler: (T) -> Unit = {}
     private var cancelled: Boolean = false
     private var remainingTriggers: Int? = null
-    private var listener: Listener? = null
-    private val plugin: JavaPlugin = JavaPlugin.getProvidingPlugin(EventAssigner::class.java)
+
+    companion object {
+        private val onGoingEvents: MutableMap<String, Listener> = mutableMapOf()
+        private val plugin: JavaPlugin = JavaPlugin.getProvidingPlugin(EventAssigner::class.java)
+    }
 
     init {
-        listener = object : Listener {
-            @EventHandler
-            fun onEvent(event: T) {
-                if (eventClass.isInstance(event)) {
-                    val typedEvent = eventClass.cast(event)
-                    if (typedEvent is Cancellable && cancelled) {
-                        typedEvent.isCancelled = true
-                    }
-                    handler(typedEvent)
+        checkEventClassHasHandlerList(eventClass)
+    }
 
-                    remainingTriggers?.let {
-                        if (it > 1) {
-                            remainingTriggers = it - 1
-                        } else {
-                            unregister()
-                        }
-                    }
+    @EventHandler
+    private fun handleEvent(event: T) {
+        if (eventClass.isAssignableFrom(event.javaClass)) {
+            if (event is Cancellable && cancelled) {
+                event.isCancelled = true
+            }
+            handler(event)
+            remainingTriggers?.let {
+                if (it > 1) {
+                    remainingTriggers = it - 1
+                } else {
+                    unregister()
                 }
             }
         }
-        plugin.server.pluginManager.registerEvents(listener!!, plugin)
+    }
+
+    private fun checkEventClassHasHandlerList(eventClass: Class<*>) {
+        try {
+            val method: Method = eventClass.getDeclaredMethod("getHandlerList")
+            if (!HandlerList::class.java.isAssignableFrom(method.returnType)) {
+                throw IllegalArgumentException("Event type ${eventClass.simpleName} does not have a valid getHandlerList method")
+            }
+        } catch (e: NoSuchMethodException) {
+            throw IllegalArgumentException("Event type ${eventClass.simpleName} does not have a getHandlerList method")
+        }
     }
 
     fun handler(func: (T) -> Unit): EventAssigner<T> {
         handler = func
         return this
+    }
+
+    fun assign(key: String? = null) {
+        plugin.server.pluginManager.registerEvents(this, plugin)
+        key?.let { onGoingEvents[it] = this }
     }
 
     fun cancelled(bool: Boolean): EventAssigner<T> {
@@ -57,7 +74,7 @@ class EventAssigner<T : Event>(private val eventClass: Class<T>) {
         return this
     }
 
-    private fun unregister() {
-        listener?.let { HandlerList.unregisterAll(it) }
+    fun unregister() {
+        HandlerList.unregisterAll(this)
     }
 }
