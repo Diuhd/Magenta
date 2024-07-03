@@ -2,9 +2,10 @@ package com.diuhd.magenta.commands
 
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.command.CommandMap
-import org.bukkit.command.PluginCommand
+import org.bukkit.command.*
+import org.bukkit.command.defaults.BukkitCommand
 import org.bukkit.plugin.java.JavaPlugin
+import java.lang.reflect.Field
 
 class CommandBuilder {
     data class FilterCodec(val filter: (CommandArgs) -> Boolean, val warningMessage: String)
@@ -55,39 +56,23 @@ class CommandBuilder {
         private val commandHandler: (CommandArgs) -> Boolean
     ) {
         fun register(name: String) {
-            val command: PluginCommand = plugin.getCommand(name) ?: createCommand(name)
-            command.setExecutor { sender, _, _, args ->
-                val commandArgs = CommandArgs.create(sender, command, name, args.toList())
-                for (node in filterNodes) {
-                    if (!node.filter(commandArgs)) {
-                        sender.sendMessage(node.warningMessage)
-                        return@setExecutor true
+            val bukkitCommandMap: Field = Bukkit.getServer().javaClass.getDeclaredField("commandMap")
+            bukkitCommandMap.setAccessible(true)
+            val commandMap: CommandMap = bukkitCommandMap.get(Bukkit.getServer()) as CommandMap
+            val command: Command = plugin.getCommand(name) ?: object: BukkitCommand(name) {
+                override fun execute(p0: CommandSender, p1: String, p2: Array<out String>): Boolean {
+                    val args: CommandArgs = CommandArgs.create(p0, this, p1, p2.toList())
+                    for (node in filterNodes) {
+                        if (!node.filter(args)) {
+                            p0.sendMessage("${ChatColor.RED}You cannot use this command!")
+                            return true
+                        }
                     }
+                    commandHandler(args)
+                    return true
                 }
-                commandHandler(commandArgs)
-                sender.sendMessage("Command executed successfully!")
-                true
             }
-            getCommandMap().register(plugin.description.name, command)
-        }
-
-        private fun createCommand(name: String): PluginCommand {
-            return try {
-                val constructor =
-                    PluginCommand::class.java.getDeclaredConstructor(String::class.java, JavaPlugin::class.java)
-                constructor.isAccessible = true
-                constructor.newInstance(name, plugin)
-            } catch (e: NoSuchMethodException) {
-                throw RuntimeException("Failed to find constructor for PluginCommand", e)
-            } catch (e: Exception) {
-                throw RuntimeException("Failed to create command: $name", e)
-            }
-        }
-
-        private fun getCommandMap(): CommandMap {
-            val commandMapField = Bukkit.getServer()::class.java.getDeclaredField("commandMap")
-            commandMapField.isAccessible = true
-            return commandMapField.get(Bukkit.getServer()) as CommandMap
+            commandMap.register(name, command)
         }
     }
 }
