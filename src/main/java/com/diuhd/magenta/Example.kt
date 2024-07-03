@@ -18,11 +18,11 @@ class Example: JavaPlugin() {
             .register("hello")
 
         // Events Example
-        EventAssigner(PlayerJoinEvent::class.java)
-            .expiresIn(5) // Event expires in 5 activations
-            .handler { e -> // Main function
-                e.player.sendMessage("Welcome to the server!")
+        EventAssigner.create(PlayerJoinEvent::class.java)
+            .expiresIn(5)
+            .handler { c ->
+                c.player.sendMessage("Hello Sir!")
             }
-						.assign("OnPlayerJoin")
+            .assign()
     }
 }
