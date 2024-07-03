@@ -19,10 +19,10 @@ class Example: JavaPlugin() {
 
         // Events Example
         EventAssigner(PlayerJoinEvent::class.java)
-            .expiresIn(5)
-            .handler { e ->
+            .expiresIn(5) // Event expires in 5 activations
+            .handler { e -> // Main function
                 e.player.sendMessage("Welcome to the server!")
             }
-            .assign()
+						.assign("OnPlayerJoin")
     }
 }
