@@ -12,6 +12,7 @@ class Gui(private val rows: Int, title: String) {
     private val INVENTORY_WIDTH = 9
     private val inventory: Inventory = Bukkit.createInventory(null, rows * INVENTORY_WIDTH, title)
     val buttons: MutableList<GuiButton?> = MutableList(INVENTORY_WIDTH * rows) { null }
+    val borderItems: BooleanArray = BooleanArray(INVENTORY_WIDTH * rows) { false }
 
     companion object {
         private var initialized: Boolean = false
@@ -19,6 +20,7 @@ class Gui(private val rows: Int, title: String) {
             plugin.server.pluginManager.registerEvents(GuiListener(), plugin)
             initialized = true
         }
+        private val BORDER_ITEM = ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName(" ").build()
     }
 
     init {
@@ -45,8 +47,8 @@ class Gui(private val rows: Int, title: String) {
         repeat(thickness) {
             schem.map("1".repeat(INVENTORY_WIDTH))
         }
-
-        schem.apply(this, Material.GRAY_STAINED_GLASS_PANE)
+        schem.getBooleanArray().copyInto(borderItems)
+        schem.apply(this, BORDER_ITEM)
         return this
     }
 
@@ -58,7 +60,7 @@ class Gui(private val rows: Int, title: String) {
     fun setItem(row: Int, column: Int, item: ItemStack): Gui {
         require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
         require(column in 0 until INVENTORY_WIDTH) { "Column must be between 0 and 8" }
-        setItem(row * INVENTORY_WIDTH + column, item)
+        setItem((row - 1) * INVENTORY_WIDTH + (column - 1), item)
         return this
     }
 

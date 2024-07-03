@@ -1,8 +1,11 @@
 package com.diuhd.magenta.gui
 
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
+import org.bukkit.plugin.java.JavaPlugin
 
 class ItemBuilder(mat: Material) {
     val stack = ItemStack(mat)
@@ -32,6 +35,11 @@ class ItemBuilder(mat: Material) {
         if (existentLore != null) {
             itemMeta.lore = existentLore.toMutableList() + lore
         }
+        return this
+    }
+    fun setTag(key: String): ItemBuilder {
+        val namespacedKey = NamespacedKey(JavaPlugin.getProvidingPlugin(ItemBuilder::class.java), key)
+        itemMeta.persistentDataContainer.set(namespacedKey, PersistentDataType.BYTE, 0.toByte())
         return this
     }
 }

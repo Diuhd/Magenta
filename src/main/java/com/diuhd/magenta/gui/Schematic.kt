@@ -1,6 +1,7 @@
 package com.diuhd.magenta.gui
 
 import org.bukkit.Material
+import org.bukkit.inventory.ItemStack
 
 class Schematic {
     companion object {
@@ -15,7 +16,7 @@ class Schematic {
         return this
     }
 
-    private fun convertToBooleanArray(): BooleanArray =
+    private fun convertToBooleanArray(stringArray: List<String>): BooleanArray =
         BooleanArray(scheme.size * LINE_LENGTH).apply {
             scheme.forEachIndexed { rowIndex, line ->
                 line.forEachIndexed { columnIndex, char ->
@@ -25,10 +26,23 @@ class Schematic {
         }
 
     fun apply(gui: Gui, material: Material) {
-        val boolArray = convertToBooleanArray()
+        val boolArray = convertToBooleanArray(scheme)
         boolArray.forEachIndexed { index, isBorder ->
             if (isBorder) {
                 gui.setItem(index, ItemBuilder(material).setName(" ").setLore(" ").build())
+            }
+        }
+    }
+
+    fun getBooleanArray(): BooleanArray {
+        return convertToBooleanArray(scheme)
+    }
+
+    fun apply(gui: Gui, itemStack: ItemStack) {
+        val boolArray = convertToBooleanArray(scheme)
+        boolArray.forEachIndexed { index, isBorder ->
+            if (isBorder) {
+                gui.setItem(index, itemStack)
             }
         }
     }
