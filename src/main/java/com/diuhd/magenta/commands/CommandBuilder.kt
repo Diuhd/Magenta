@@ -17,7 +17,7 @@ class CommandBuilder {
     }
 
     class InitialState(private val plugin: JavaPlugin) {
-        private lateinit var commandHandler: (CommandArgs) -> Boolean
+        private lateinit var commandHandler: (CommandArgs) -> Unit
         private val filterNodes: MutableList<FilterCodec> = mutableListOf()
 
         fun checkPlayer(warning: String): InitialState {
@@ -34,7 +34,7 @@ class CommandBuilder {
             return this
         }
 
-        fun handler(handlerFunc: (CommandArgs) -> Boolean): FinalState {
+        fun handler(handlerFunc: (CommandArgs) -> Unit): FinalState {
             commandHandler = handlerFunc
             return FinalState(plugin, filterNodes, commandHandler)
         }
@@ -53,7 +53,7 @@ class CommandBuilder {
     class FinalState(
         private val plugin: JavaPlugin,
         private val filterNodes: MutableList<FilterCodec>,
-        private val commandHandler: (CommandArgs) -> Boolean
+        private val commandHandler: (CommandArgs) -> Unit
     ) {
         fun register(name: String) {
             val bukkitCommandMap: Field = Bukkit.getServer().javaClass.getDeclaredField("commandMap")
