@@ -1,5 +1,6 @@
 package com.diuhd.magenta.gui
 
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -18,6 +19,7 @@ class GuiListener : Listener {
             if (slot >= 0 && slot < menu.buttons.size) {
                 if (menu.buttons[slot] != null) {
                     val button: GuiButton = menu.buttons[slot]!!
+                    if (event.currentItem == null && event.currentItem?.type == Material.AIR) throw IllegalArgumentException("The button should NOT be null.")
                     event.isCancelled = true
                     button.onClick(event)
                 } else if (menu.borderItems[slot]) {

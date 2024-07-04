@@ -74,7 +74,7 @@ class Gui(private val rows: Int, title: String) {
         require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
         require(column in 0 until INVENTORY_WIDTH) { "Column must be between 0 and 8" }
         setItem(row, column, button.getItemStack())
-        buttons[row * INVENTORY_WIDTH + column] = button
+        buttons[(row - 1) * INVENTORY_WIDTH + (column - 1)] = button
         return this
     }
 }
