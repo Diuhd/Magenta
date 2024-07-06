@@ -2,54 +2,31 @@ package com.diuhd.magenta.gui
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
+import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
-import org.bukkit.metadata.FixedMetadataValue
 import org.bukkit.plugin.java.JavaPlugin
 
-class Gui(private val rows: Int, title: String) {
-    private val INVENTORY_WIDTH = 9
-    private val inventory: Inventory = Bukkit.createInventory(null, rows * INVENTORY_WIDTH, title)
-    val buttons: MutableList<GuiButton?> = MutableList(INVENTORY_WIDTH * rows) { null }
-    val borderItems: BooleanArray = BooleanArray(INVENTORY_WIDTH * rows) { false }
+abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
 
     companion object {
-        private var initialized: Boolean = false
-        fun initialize(plugin: JavaPlugin) {
+        fun register(plugin: JavaPlugin) {
             plugin.server.pluginManager.registerEvents(GuiListener(), plugin)
-            initialized = true
         }
-        private val BORDER_ITEM = ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName(" ").build()
     }
+
+    private val inventory: Inventory = Bukkit.createInventory(this, rows * 9, title)
+    private val buttons = MutableList<GuiButton?>(rows * 9) { null }
+    private val borderItems: BooleanArray = BooleanArray(rows * 9) { false }
 
     init {
-        require(rows in 1..6) { "Rows must be between 1 and 6!" }
-        require(initialized) { "Gui must be initialized before creating one! (Gui#initialize)" }
+        make()
     }
 
-    fun open(player: Player) {
-        player.setMetadata("OpenGui", FixedMetadataValue(JavaPlugin.getProvidingPlugin(Gui::class.java), this))
-        player.openInventory(inventory)
-    }
+    protected abstract fun make()
 
-    fun setBorder(thickness: Int): Gui {
-        require(thickness * 2 < rows) { "Border is too thick for the number of rows!" }
-        require(thickness * 2 < INVENTORY_WIDTH) { "Border is too thick for the number of columns!" }
-
-        val schem = Schematic()
-        repeat(thickness) {
-            schem.map("1".repeat(INVENTORY_WIDTH))
-        }
-        repeat(rows - thickness * 2) {
-            schem.map("1".repeat(thickness) + "0".repeat(INVENTORY_WIDTH - thickness * 2) + "1".repeat(thickness))
-        }
-        repeat(thickness) {
-            schem.map("1".repeat(INVENTORY_WIDTH))
-        }
-        schem.getBooleanArray().copyInto(borderItems)
-        schem.apply(this, BORDER_ITEM)
-        return this
+    override fun getInventory(): Inventory {
+        return inventory
     }
 
     fun setItem(slot: Int, item: ItemStack): Gui {
@@ -58,23 +35,52 @@ class Gui(private val rows: Int, title: String) {
     }
 
     fun setItem(row: Int, column: Int, item: ItemStack): Gui {
-        require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
-        require(column in 0 until INVENTORY_WIDTH) { "Column must be between 0 and 8" }
-        setItem((row - 1) * INVENTORY_WIDTH + (column - 1), item)
-        return this
+        val slot = validateAndGetSlot(row, column)
+        return setItem(slot, item)
+    }
+
+    fun checkIfItemIsBorder(slot: Int): Boolean {
+        return borderItems[slot]
     }
 
     fun setButton(slot: Int, button: GuiButton): Gui {
+        require(button.getItemStack().type != Material.AIR)
         setItem(slot, button.getItemStack())
         buttons[slot] = button
         return this
     }
 
     fun setButton(row: Int, column: Int, button: GuiButton): Gui {
-        require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
-        require(column in 0 until INVENTORY_WIDTH) { "Column must be between 0 and 8" }
-        setItem(row, column, button.getItemStack())
-        buttons[(row - 1) * INVENTORY_WIDTH + (column - 1)] = button
+        val slot = validateAndGetSlot(row, column)
+        return setButton(slot, button)
+    }
+
+    fun getButton(slot: Int): GuiButton? {
+        return buttons[slot]
+    }
+
+    fun setBorder(thickness: Int): Gui {
+        require(thickness * 2 < rows) { "Border is too thick for the number of rows!" }
+        require(thickness * 2 < 9) { "Border is too thick for the number of columns!" }
+
+        val schem = Schematic()
+        repeat(thickness) {
+            schem.map("1".repeat(9))
+        }
+        repeat(rows - thickness * 2) {
+            schem.map("1".repeat(thickness) + "0".repeat(9 - thickness * 2) + "1".repeat(thickness))
+        }
+        repeat(thickness) {
+            schem.map("1".repeat(9))
+        }
+        schem.getBooleanArray().copyInto(borderItems)
+        schem.apply(this, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
         return this
+    }
+
+    private fun validateAndGetSlot(row: Int, column: Int): Int {
+        require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
+        require(column in 0 until 9) { "Column must be between 0 and 8" }
+        return row * 9 + column
     }
 }

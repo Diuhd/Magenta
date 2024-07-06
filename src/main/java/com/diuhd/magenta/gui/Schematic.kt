@@ -16,7 +16,7 @@ class Schematic {
         return this
     }
 
-    private fun convertToBooleanArray(stringArray: List<String>): BooleanArray =
+    private fun convertToBooleanArray(): BooleanArray =
         BooleanArray(scheme.size * LINE_LENGTH).apply {
             scheme.forEachIndexed { rowIndex, line ->
                 line.forEachIndexed { columnIndex, char ->
@@ -26,7 +26,7 @@ class Schematic {
         }
 
     fun apply(gui: Gui, material: Material) {
-        val boolArray = convertToBooleanArray(scheme)
+        val boolArray = convertToBooleanArray()
         boolArray.forEachIndexed { index, isBorder ->
             if (isBorder) {
                 gui.setItem(index, ItemBuilder(material).setName(" ").setLore(" ").build())
@@ -35,14 +35,14 @@ class Schematic {
     }
 
     fun getBooleanArray(): BooleanArray {
-        return convertToBooleanArray(scheme)
+        return convertToBooleanArray()
     }
 
-    fun apply(gui: Gui, itemStack: ItemStack) {
-        val boolArray = convertToBooleanArray(scheme)
+    fun apply(inventory: Gui, itemStack: ItemStack) {
+        val boolArray = convertToBooleanArray()
         boolArray.forEachIndexed { index, isBorder ->
             if (isBorder) {
-                gui.setItem(index, itemStack)
+                inventory.setItem(index, itemStack)
             }
         }
     }
