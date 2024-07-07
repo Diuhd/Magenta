@@ -8,7 +8,5 @@ class GuiButton(private val stack: ItemStack, private val func: (InventoryClickE
         func(event)
     }
 
-    fun getItemStack(): ItemStack {
-        return stack
-    }
+    fun getItemStack(): ItemStack = stack
 }

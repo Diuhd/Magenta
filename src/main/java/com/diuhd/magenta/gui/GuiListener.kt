@@ -7,17 +7,15 @@ import org.bukkit.event.inventory.InventoryClickEvent
 class GuiListener : Listener {
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
-        val inventoryHolder = event.inventory.holder
+        val inventoryHolder = event.inventory.holder as? Gui ?: return
 
-        if (inventoryHolder is Gui) {
+        val slot = event.rawSlot
+        if (!inventoryHolder.checkOpenSlot(slot)) {
             event.isCancelled = true
-            val slot = event.rawSlot
-
-            if (slot < 0 || slot >= event.inventory.size) return
-            if (inventoryHolder.checkIfItemIsBorder(slot)) return
-
-            val button = inventoryHolder.getButton(slot)
-            button?.onClick(event)
+            return
         }
+        if (slot < 0 || slot >= event.inventory.size) return
+
+        inventoryHolder.getButton(slot)?.onClick(event)
     }
 }

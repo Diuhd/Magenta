@@ -2,6 +2,7 @@ package com.diuhd.magenta.gui
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
@@ -15,9 +16,9 @@ abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
         }
     }
 
-    private val inventory: Inventory = Bukkit.createInventory(this, rows * 9, title)
+    private val _inventory: Inventory by lazy { Bukkit.createInventory(this, rows * 9, title) }
     private val buttons = MutableList<GuiButton?>(rows * 9) { null }
-    private val borderItems: BooleanArray = BooleanArray(rows * 9) { false }
+    private val openSlots = mutableSetOf<Int>()
 
     init {
         make()
@@ -25,12 +26,15 @@ abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
 
     protected abstract fun make()
 
-    override fun getInventory(): Inventory {
-        return inventory
+    // Override property accessor instead of method
+    override fun getInventory(): Inventory = _inventory
+
+    fun open(entity: Player) {
+        entity.openInventory(_inventory)
     }
 
     fun setItem(slot: Int, item: ItemStack): Gui {
-        inventory.setItem(slot, item)
+        _inventory.setItem(slot, item)
         return this
     }
 
@@ -39,12 +43,10 @@ abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
         return setItem(slot, item)
     }
 
-    fun checkIfItemIsBorder(slot: Int): Boolean {
-        return borderItems[slot]
-    }
+    fun checkOpenSlot(slot: Int): Boolean = openSlots.contains(slot)
 
     fun setButton(slot: Int, button: GuiButton): Gui {
-        require(button.getItemStack().type != Material.AIR)
+        require(button.getItemStack().type != Material.AIR) { "Button item type cannot be AIR" }
         setItem(slot, button.getItemStack())
         buttons[slot] = button
         return this
@@ -55,9 +57,26 @@ abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
         return setButton(slot, button)
     }
 
-    fun getButton(slot: Int): GuiButton? {
-        return buttons[slot]
+    fun fill(item: ItemStack): Gui {
+        for (slot in 0 until _inventory.size) {
+            if (_inventory.getItem(slot) == null) {
+                setItem(slot, item)
+            }
+        }
+        return this
     }
+
+    fun openSlot(row: Int, column: Int): Gui {
+        val slot = validateAndGetSlot(row, column)
+        return openSlot(slot)
+    }
+
+    fun openSlot(slot: Int): Gui {
+        openSlots.add(slot)
+        return this
+    }
+
+    fun getButton(slot: Int): GuiButton? = buttons[slot]
 
     fun setBorder(thickness: Int): Gui {
         require(thickness * 2 < rows) { "Border is too thick for the number of rows!" }
@@ -73,7 +92,6 @@ abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
         repeat(thickness) {
             schem.map("1".repeat(9))
         }
-        schem.getBooleanArray().copyInto(borderItems)
         schem.apply(this, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
         return this
     }
