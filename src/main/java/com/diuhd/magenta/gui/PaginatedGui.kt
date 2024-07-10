@@ -15,11 +15,17 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
     private var page = 0
 
     init {
+        initialize()
         make()
         updateInventory()
     }
 
     abstract override fun make()
+
+    private fun initialize() {
+        slots.clear()
+        items.clear()
+    }
 
     fun addItem(item: ItemStack): PaginatedGui {
         items.add(InventoryItem.Item(item))
@@ -39,6 +45,7 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
         }
         this.slots.clear()
         this.slots.addAll(slots.asList())
+        updateInventory()  // Update inventory whenever slots change
         return this
     }
 
@@ -56,19 +63,35 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
         return this
     }
 
+    fun addItemStackContent(item: ItemStack): PaginatedGui {
+        items.add(InventoryItem.Item(item))
+        updateInventory()
+        return this
+    }
+
+    fun addButtonContent(guiButton: GuiButton): PaginatedGui {
+        items.add(InventoryItem.Button(guiButton))
+        updateInventory()
+        return this
+    }
+
     private fun updateInventory() {
         inventory.clear()
+
+        if (slots.isEmpty()) return
+
         val start = page * slots.size
         val end = (start + slots.size).coerceAtMost(items.size)
 
-        for ((iter, slot) in slots.withIndex()) {
-            if (iter >= items.size) break
-            when (val inventoryItem = items[start + iter]) {
+        for (i in start until end) {
+            val slot = slots[i - start]
+            when (val inventoryItem = items[i]) {
                 is InventoryItem.Item -> setItem(slot, inventoryItem.itemStack)
                 is InventoryItem.Button -> setButton(slot, inventoryItem.guiButton)
             }
         }
 
+        // Navigation buttons
         if (page > 0) {
             setButton(inventory.size - 9, createNavigationButton("Previous Page", Material.ARROW) {
                 page--

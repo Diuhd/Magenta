@@ -26,7 +26,6 @@ abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
 
     protected abstract fun make()
 
-    // Override property accessor instead of method
     override fun getInventory(): Inventory = _inventory
 
     fun open(entity: Player) {
