@@ -5,13 +5,8 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
 abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
-    sealed class InventoryItem {
-        data class Item(val itemStack: ItemStack) : InventoryItem()
-        data class Button(val guiButton: GuiButton) : InventoryItem()
-    }
-
     private val slots: MutableList<Int> = mutableListOf()
-    private val items: MutableList<InventoryItem> = mutableListOf()
+    private val buttons: MutableList<GuiButton> = mutableListOf()
     private var page = 0
 
     init {
@@ -24,17 +19,11 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
 
     private fun initialize() {
         slots.clear()
-        items.clear()
-    }
-
-    fun addItem(item: ItemStack): PaginatedGui {
-        items.add(InventoryItem.Item(item))
-        updateInventory()
-        return this
+        buttons.clear()
     }
 
     fun addButton(button: GuiButton): PaginatedGui {
-        items.add(InventoryItem.Button(button))
+        buttons.add(button)
         updateInventory()
         return this
     }
@@ -49,28 +38,15 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
         return this
     }
 
-    fun setItemStackContents(list: List<ItemStack>): PaginatedGui {
-        items.clear()
-        items.addAll(list.map { InventoryItem.Item(it) })
+    fun setContents(list: List<GuiButton>): PaginatedGui {
+        buttons.clear()
+        buttons.addAll(list.map { it })
         updateInventory()
         return this
     }
 
-    fun setButtonContents(list: List<GuiButton>): PaginatedGui {
-        items.clear()
-        items.addAll(list.map { InventoryItem.Button(it) })
-        updateInventory()
-        return this
-    }
-
-    fun addItemStackContent(item: ItemStack): PaginatedGui {
-        items.add(InventoryItem.Item(item))
-        updateInventory()
-        return this
-    }
-
-    fun addButtonContent(guiButton: GuiButton): PaginatedGui {
-        items.add(InventoryItem.Button(guiButton))
+    fun addContent(guiButton: GuiButton): PaginatedGui {
+        buttons.add(guiButton)
         updateInventory()
         return this
     }
@@ -81,17 +57,13 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
         if (slots.isEmpty()) return
 
         val start = page * slots.size
-        val end = (start + slots.size).coerceAtMost(items.size)
+        val end = (start + slots.size).coerceAtMost(buttons.size)
 
         for (i in start until end) {
             val slot = slots[i - start]
-            when (val inventoryItem = items[i]) {
-                is InventoryItem.Item -> setItem(slot, inventoryItem.itemStack)
-                is InventoryItem.Button -> setButton(slot, inventoryItem.guiButton)
-            }
+            setButton(slot, buttons[i])
         }
-
-        // Navigation buttons
+        
         if (page > 0) {
             setButton(inventory.size - 9, createNavigationButton("Previous Page", Material.ARROW) {
                 page--
@@ -99,7 +71,7 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
             })
         }
 
-        if (end < items.size) {
+        if (end < buttons.size) {
             setButton(inventory.size - 1, createNavigationButton("Next Page", Material.ARROW) {
                 page++
                 updateInventory()
