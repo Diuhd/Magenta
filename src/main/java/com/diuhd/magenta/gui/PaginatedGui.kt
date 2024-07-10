@@ -5,8 +5,8 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
 abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
-    private val slots = mutableListOf<Int>()
-    private val pageButtons = mutableListOf<GuiButton>()
+    private val slots by lazy { mutableListOf<Int>() }
+    private val pageButtons by lazy { mutableListOf<GuiButton>() }
     private var page = 0
 
     init {
@@ -56,7 +56,7 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
             val slot = slots[i - start]
             setButton(slot, pageButtons[i])
         }
-        
+
         if (page > 0) {
             setButton(inventory.size - 9, createNavigationButton("Previous Page", Material.ARROW) {
                 page--
