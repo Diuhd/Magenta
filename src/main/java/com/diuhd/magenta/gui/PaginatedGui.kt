@@ -5,25 +5,18 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
 abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
-    private val slots: MutableList<Int> = mutableListOf()
-    private val buttons: MutableList<GuiButton> = mutableListOf()
+    private val slots = mutableListOf<Int>()
+    private val pageButtons = mutableListOf<GuiButton>()
     private var page = 0
 
     init {
-        initialize()
-        make()
         updateInventory()
     }
 
     abstract override fun make()
 
-    private fun initialize() {
-        slots.clear()
-        buttons.clear()
-    }
-
     fun addButton(button: GuiButton): PaginatedGui {
-        buttons.add(button)
+        pageButtons.add(button)
         updateInventory()
         return this
     }
@@ -39,14 +32,14 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
     }
 
     fun setContents(list: List<GuiButton>): PaginatedGui {
-        buttons.clear()
-        buttons.addAll(list.map { it })
+        pageButtons.clear()
+        pageButtons.addAll(list.map { it })
         updateInventory()
         return this
     }
 
     fun addContent(guiButton: GuiButton): PaginatedGui {
-        buttons.add(guiButton)
+        pageButtons.add(guiButton)
         updateInventory()
         return this
     }
@@ -57,11 +50,11 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
         if (slots.isEmpty()) return
 
         val start = page * slots.size
-        val end = (start + slots.size).coerceAtMost(buttons.size)
+        val end = (start + slots.size).coerceAtMost(pageButtons.size)
 
         for (i in start until end) {
             val slot = slots[i - start]
-            setButton(slot, buttons[i])
+            setButton(slot, pageButtons[i])
         }
         
         if (page > 0) {
@@ -71,7 +64,7 @@ abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
             })
         }
 
-        if (end < buttons.size) {
+        if (end < pageButtons.size) {
             setButton(inventory.size - 1, createNavigationButton("Next Page", Material.ARROW) {
                 page++
                 updateInventory()
