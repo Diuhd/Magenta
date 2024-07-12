@@ -22,8 +22,8 @@ abstract class Gui(title: String, lines: Int): InventoryHolder {
         }
     }
 
-    abstract fun onOpen()
-    abstract fun onClose()
+    open fun onOpen() {}
+    open fun onClose() {}
 
     fun setButton(slot: Int, button: GuiButton) {
         buttons[slot] = button
