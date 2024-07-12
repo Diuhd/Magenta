@@ -25,24 +25,15 @@ class Schematic {
             }
         }
 
-    fun apply(gui: Gui, material: Material) {
-        val boolArray = convertToBooleanArray()
-        boolArray.forEachIndexed { index, isBorder ->
-            if (isBorder) {
-                gui.setItem(index, ItemBuilder(material).setName(" ").setLore(" ").build())
-            }
-        }
-    }
-
     fun getBooleanArray(): BooleanArray {
         return convertToBooleanArray()
     }
 
     fun apply(inventory: Gui, itemStack: ItemStack) {
         val boolArray = convertToBooleanArray()
-        boolArray.forEachIndexed { index, isBorder ->
-            if (isBorder) {
-                inventory.setItem(index, itemStack)
+        boolArray.forEachIndexed { index, bool ->
+            if (bool) {
+                inventory.setButton(index, GuiButton(itemStack))
             }
         }
     }

@@ -1,81 +1,68 @@
 package com.diuhd.magenta.gui
 
-import org.bukkit.Material
-import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
-abstract class PaginatedGui(rows: Int, title: String) : Gui(rows, title) {
-    private val slots by lazy { mutableListOf<Int>() }
-    private val pageButtons by lazy { mutableListOf<GuiButton>() }
-    private var page = 0
+abstract class PaginatedGui(title: String, lines: Int) : Gui(title, lines) {
+    private val content: MutableList<GuiButton> = mutableListOf()
+    private val slots: MutableList<Int> = mutableListOf()
+    protected var currentPage: Int = 0
+    protected var totalPages: Int = 1
 
-    init {
-        updateInventory()
+    fun setContent(newContent: List<GuiButton>) {
+        content.clear()
+        content.addAll(newContent)
+        updateTotalPages()
+        populatePage(currentPage)
     }
 
-    abstract override fun make()
-
-    fun addButton(button: GuiButton): PaginatedGui {
-        pageButtons.add(button)
-        updateInventory()
-        return this
+    fun addContent(newContent: GuiButton) {
+        content.add(newContent)
+        updateTotalPages()
+        populatePage(currentPage)
     }
 
-    fun pageSlots(vararg slots: Int): PaginatedGui {
-        require(slots.all { it in 0 until inventory.size }) {
-            "Slots must be within the range of the inventory size"
+    fun setPagedSlots(vararg pagedSlots: Int) {
+        slots.clear()
+        pagedSlots.forEach { slot ->
+            slots.add(slot)
         }
-        this.slots.clear()
-        this.slots.addAll(slots.asList())
-        updateInventory()  // Update inventory whenever slots change
-        return this
+        updateTotalPages()
+        populatePage(currentPage)
     }
 
-    fun setContents(list: List<GuiButton>): PaginatedGui {
-        pageButtons.clear()
-        pageButtons.addAll(list.map { it })
-        updateInventory()
-        return this
+    fun nextPage() {
+        if (currentPage < totalPages - 1) {
+            currentPage++
+            populatePage(currentPage)
+        }
     }
 
-    fun addContent(guiButton: GuiButton): PaginatedGui {
-        pageButtons.add(guiButton)
-        updateInventory()
-        return this
+    fun previousPage() {
+        if (currentPage > 0) {
+            currentPage--
+            populatePage(currentPage)
+        }
     }
 
-    private fun updateInventory() {
+    private fun updateTotalPages() {
+        totalPages = Math.ceil(content.size.toDouble() / slots.size).toInt()
+    }
+
+    private fun populatePage(page: Int) {
         inventory.clear()
-
-        if (slots.isEmpty()) return
-
-        val start = page * slots.size
-        val end = (start + slots.size).coerceAtMost(pageButtons.size)
-
-        for (i in start until end) {
-            val slot = slots[i - start]
-            setButton(slot, pageButtons[i])
+        buttons.clear()
+        val startIndex = page * slots.size
+        val endIndex = Math.min(startIndex + slots.size, content.size)
+        for (i in startIndex until endIndex) {
+            setButton(slots[i - startIndex], content[i])
         }
-
-        if (page > 0) {
-            setButton(inventory.size - 9, createNavigationButton("Previous Page", Material.ARROW) {
-                page--
-                updateInventory()
-            })
-        }
-
-        if (end < pageButtons.size) {
-            setButton(inventory.size - 1, createNavigationButton("Next Page", Material.ARROW) {
-                page++
-                updateInventory()
-            })
-        }
+        onOpen()
     }
 
-    private fun createNavigationButton(name: String, material: Material, onClick: (InventoryClickEvent) -> Unit): GuiButton {
-        val item = ItemStack(material).apply {
-            itemMeta = itemMeta?.apply { setDisplayName(name) }
-        }
-        return GuiButton(item, onClick)
+    override fun open(entity: Player) {
+        require(slots.isNotEmpty()) { "Slot list must not be empty" }
+        populatePage(currentPage)
+        super.open(entity)
     }
 }

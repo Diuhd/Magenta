@@ -8,96 +8,69 @@ import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 
-abstract class Gui(private val rows: Int, title: String) : InventoryHolder {
+abstract class Gui(title: String, lines: Int): InventoryHolder {
+    private val _inventory: Inventory = Bukkit.createInventory(null, lines * 9, title)
+    protected val buttons: MutableMap<Int, GuiButton> = mutableMapOf()
+    protected val openSlots: MutableList<Int> = mutableListOf()
+    private var registeredEvents: Boolean = false
 
-    companion object {
-        fun register(plugin: JavaPlugin) {
+    init {
+        if (!registeredEvents) {
+            val plugin: JavaPlugin = JavaPlugin.getProvidingPlugin(Gui::class.java)
             plugin.server.pluginManager.registerEvents(GuiListener(), plugin)
+            registeredEvents = true
         }
     }
 
-    private val _inventory: Inventory by lazy { Bukkit.createInventory(this, rows * 9, title) }
-    private val buttons = MutableList<GuiButton?>(rows * 9) { null }
-    private val openSlots = mutableSetOf<Int>()
+    abstract fun onOpen()
+    abstract fun onClose()
 
-    init {
-        make()
+    fun setButton(slot: Int, button: GuiButton) {
+        buttons[slot] = button
+        _inventory.setItem(slot, button.getItemStack())
     }
 
-    protected abstract fun make()
+    fun setOpen(slot: Int) {
+        openSlots.add(slot)
+    }
+
+    fun checkIfOpen(slot: Int): Boolean {
+        return openSlots.contains(slot)
+    }
 
     override fun getInventory(): Inventory = _inventory
 
-    fun open(entity: Player) {
-        entity.openInventory(_inventory)
+    fun fill(item: ItemStack) {
+        for (i in 0 until inventory.size) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, item)
+            }
+        }
     }
 
-    fun setItem(slot: Int, item: ItemStack): Gui {
-        _inventory.setItem(slot, item)
-        return this
+    fun getButton(slot: Int): GuiButton? {
+        return buttons[slot]
     }
 
-    fun setItem(row: Int, column: Int, item: ItemStack): Gui {
-        val slot = validateAndGetSlot(row, column)
-        return setItem(slot, item)
-    }
+    fun setBorder(thickness: Int): Gui {
+        val size = inventory.size
+        val rows = size / 9
 
-    fun checkOpenSlot(slot: Int): Boolean = openSlots.contains(slot)
-
-    fun setButton(slot: Int, button: GuiButton): Gui {
-        require(button.getItemStack().type != Material.AIR) { "Button item type cannot be AIR" }
-        setItem(slot, button.getItemStack())
-        buttons[slot] = button
-        return this
-    }
-
-    fun setButton(row: Int, column: Int, button: GuiButton): Gui {
-        val slot = validateAndGetSlot(row, column)
-        return setButton(slot, button)
-    }
-
-    fun fill(item: ItemStack): Gui {
-        for (slot in 0 until _inventory.size) {
-            if (_inventory.getItem(slot) == null) {
-                setItem(slot, item)
+        for (row in 0 until rows) {
+            for (col in 0 until 9) {
+                if (row < thickness || row >= rows - thickness || col < thickness || col >= 9 - thickness) {
+                    val slot = row * 9 + col
+                    if (inventory.getItem(slot) == null) {
+                        inventory.setItem(slot, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+                    }
+                }
             }
         }
         return this
     }
 
-    fun openSlot(row: Int, column: Int): Gui {
-        val slot = validateAndGetSlot(row, column)
-        return openSlot(slot)
-    }
-
-    fun openSlot(slot: Int): Gui {
-        openSlots.add(slot)
-        return this
-    }
-
-    fun getButton(slot: Int): GuiButton? = buttons[slot]
-
-    fun setBorder(thickness: Int): Gui {
-        require(thickness * 2 < rows) { "Border is too thick for the number of rows!" }
-        require(thickness * 2 < 9) { "Border is too thick for the number of columns!" }
-
-        val schem = Schematic()
-        repeat(thickness) {
-            schem.map("1".repeat(9))
-        }
-        repeat(rows - thickness * 2) {
-            schem.map("1".repeat(thickness) + "0".repeat(9 - thickness * 2) + "1".repeat(thickness))
-        }
-        repeat(thickness) {
-            schem.map("1".repeat(9))
-        }
-        schem.apply(this, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-        return this
-    }
-
-    private fun validateAndGetSlot(row: Int, column: Int): Int {
-        require(row in 0 until rows) { "Row must be between 0 and ${rows - 1}" }
-        require(column in 0 until 9) { "Column must be between 0 and 8" }
-        return row * 9 + column
+    open fun open(entity: Player) {
+        onOpen()
+        entity.openInventory(inventory)
     }
 }
