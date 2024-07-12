@@ -12,7 +12,10 @@ abstract class Gui(title: String, lines: Int): InventoryHolder {
     private val _inventory: Inventory = Bukkit.createInventory(null, lines * 9, title)
     protected val buttons: MutableMap<Int, GuiButton> = mutableMapOf()
     protected val openSlots: MutableList<Int> = mutableListOf()
-    private var registeredEvents: Boolean = false
+
+    companion object {
+        private var registeredEvents: Boolean = false
+    }
 
     init {
         if (!registeredEvents) {

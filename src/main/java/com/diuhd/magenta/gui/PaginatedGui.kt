@@ -11,12 +11,16 @@ abstract class PaginatedGui(title: String, lines: Int) : Gui(title, lines) {
     fun setContent(newContent: List<GuiButton>) {
         content.clear()
         content.addAll(newContent)
-        populatePage(currentPage)
+        if (slots.isNotEmpty()) {
+            populatePage(currentPage)
+        }
     }
 
     fun addContent(newContent: GuiButton) {
         content.add(newContent)
-        populatePage(currentPage)
+        if (slots.isNotEmpty()) {
+            populatePage(currentPage)
+        }
     }
 
     fun setPagedSlots(vararg pagedSlots: Int) {
@@ -24,7 +28,9 @@ abstract class PaginatedGui(title: String, lines: Int) : Gui(title, lines) {
         pagedSlots.forEach { slot ->
             slots.add(slot)
         }
-        populatePage(currentPage)
+        if (content.isNotEmpty()) {
+            populatePage(currentPage)
+        }
     }
 
     fun nextPage() {
@@ -52,8 +58,6 @@ abstract class PaginatedGui(title: String, lines: Int) : Gui(title, lines) {
 
     override fun open(entity: Player) {
         populatePage(currentPage)
-        onOpen()
-        require(slots.isNotEmpty()) { "Slot list must not be empty" }
         super.open(entity)
     }
 }
