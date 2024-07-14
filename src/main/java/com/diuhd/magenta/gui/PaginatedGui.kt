@@ -2,62 +2,58 @@ package com.diuhd.magenta.gui
 
 import org.bukkit.entity.Player
 import kotlin.math.ceil
+import kotlin.math.min
 
 abstract class PaginatedGui(title: String, lines: Int) : Gui(title, lines) {
     private val content: MutableList<GuiButton> = mutableListOf()
     private val slots: MutableList<Int> = mutableListOf()
     protected var currentPage: Int = 0
 
-    fun setContent(newContent: List<GuiButton>) {
+    fun setContent(newContent: List<GuiButton>, refresh: Boolean = false) {
         content.clear()
         content.addAll(newContent)
-        if (slots.isNotEmpty()) {
-            populatePage(currentPage)
-        }
+        if (refresh) displayPage()
     }
 
-    fun addContent(newContent: GuiButton) {
+    fun addContent(newContent: GuiButton, refresh: Boolean = false) {
         content.add(newContent)
-        if (slots.isNotEmpty()) {
-            populatePage(currentPage)
-        }
+        if (refresh) displayPage()
     }
 
-    fun setPagedSlots(vararg pagedSlots: Int) {
+    fun setPagedSlots(vararg pagedSlots: Int, refresh: Boolean = false) {
         slots.clear()
         pagedSlots.forEach { slot ->
             slots.add(slot)
         }
-        if (content.isNotEmpty()) {
-            populatePage(currentPage)
-        }
+        if (refresh) displayPage()
     }
 
     fun nextPage() {
         val maxPages: Int = ceil(content.size.toDouble() / slots.size.toDouble()).toInt()
         if (currentPage < maxPages - 1) {
             currentPage++
-            populatePage(currentPage)
         }
+        displayPage()
     }
 
     fun previousPage() {
         if (currentPage > 0) {
             currentPage--
-            populatePage(currentPage)
         }
+        displayPage()
     }
 
-    private fun populatePage(page: Int) {
-        val startIndex = page * slots.size
-        val endIndex = (startIndex + slots.size).coerceAtMost(content.size)
-        for (i in startIndex until endIndex) {
-            setButton(slots[i - startIndex], content[i])
+    fun displayPage() {
+        val page: Int = currentPage
+        val startIndex: Int = (page - 1) * slots.size
+        val endIndex: Int = min(slots.size * page - 1, content.size - 1)
+        content.slice(startIndex..endIndex).forEachIndexed { index, guiButton ->
+            setButton(slots[index], guiButton)
         }
     }
 
     override fun open(entity: Player) {
-        populatePage(currentPage)
+        displayPage()
         super.open(entity)
     }
 }

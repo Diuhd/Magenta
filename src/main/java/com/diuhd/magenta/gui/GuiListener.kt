@@ -8,6 +8,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 class GuiListener : Listener {
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
+        println("registered")
         val inventoryHolder = event.inventory.holder as? Gui ?: return
         val slot = event.rawSlot
         if (slot < 0 || slot >= event.inventory.size) return
