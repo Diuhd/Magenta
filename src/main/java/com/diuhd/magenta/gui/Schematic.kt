@@ -32,7 +32,7 @@ class Schematic {
         val boolArray = convertToBooleanArray()
         boolArray.forEachIndexed { index, bool ->
             if (bool) {
-                inventory.setButton(index, GuiButton(itemStack))
+                inventory.addButton(index, GuiButton(itemStack))
             }
         }
     }

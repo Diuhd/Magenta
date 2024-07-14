@@ -6,7 +6,7 @@ class Applier(private val schematic: Schematic, private val gui: Gui) {
     fun applyButton(button: GuiButton): Applier {
         val boolArray: BooleanArray = schematic.getBooleanArray()
         val slot: Int = getFirstTrueIndex(boolArray)
-        gui.setButton(slot, button)
+        gui.addButton(slot, button)
         filledSlots.add(slot)
         return this
     }
