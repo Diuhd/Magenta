@@ -2,6 +2,7 @@ package com.diuhd.magenta.gui
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
@@ -32,6 +33,10 @@ abstract class Gui(title: String, private val size: Int) : InventoryHolder {
 
     private fun toSlot(line: Int, column: Int): Int {
         return (line - 1) * 9 + (column - 1)
+    }
+
+    private fun open(player: Player) {
+        player.openInventory(inventory)
     }
 
     fun addButton(slot: Int, button: GuiButton) {
