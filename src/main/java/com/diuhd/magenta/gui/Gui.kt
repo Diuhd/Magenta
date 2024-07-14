@@ -2,46 +2,79 @@ package com.diuhd.magenta.gui
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 
-abstract class Gui(title: String, lines: Int): InventoryHolder {
-    private val _inventory: Inventory = Bukkit.createInventory(null, lines * 9, title)
-    protected val buttons: MutableMap<Int, GuiButton> = mutableMapOf()
-    protected val openSlots: MutableList<Int> = mutableListOf()
+abstract class Gui(title: String, private val size: Int) : InventoryHolder {
+    private val inventory: Inventory = Bukkit.createInventory(this, size, title)
+    private val buttons: MutableMap<Int, GuiButton> = mutableMapOf()
+    private val openSlots: MutableSet<Int> = mutableSetOf()
 
     companion object {
-        private var registeredEvents: Boolean = false
+        private var initialized: Boolean = false
     }
 
     init {
-        if (!registeredEvents) {
+        if (!initialized) {
             val plugin: JavaPlugin = JavaPlugin.getProvidingPlugin(Gui::class.java)
             plugin.server.pluginManager.registerEvents(GuiListener(), plugin)
-            registeredEvents = true
         }
     }
 
-    open fun onOpen() {}
-    open fun onClose() {}
+    abstract fun initialize()
 
-    fun setButton(slot: Int, button: GuiButton) {
+    override fun getInventory(): Inventory {
+        return inventory
+    }
+
+    private fun toSlot(line: Int, column: Int): Int {
+        return (line - 1) * 9 + (column - 1)
+    }
+
+    fun addButton(slot: Int, button: GuiButton) {
+        inventory.setItem(slot, button.getItemStack())
         buttons[slot] = button
-        _inventory.setItem(slot, button.getItemStack())
     }
 
-    fun setOpen(slot: Int) {
-        openSlots.add(slot)
+    fun addButton(line: Int, column: Int, button: GuiButton) {
+        addButton(toSlot(line, column), button)
     }
 
-    fun checkIfOpen(slot: Int): Boolean {
-        return openSlots.contains(slot)
+    fun removeButton(slot: Int) {
+        inventory.setItem(slot, null)
+        buttons.remove(slot)
     }
 
-    override fun getInventory(): Inventory = _inventory
+    fun removeButton(line: Int, column: Int) {
+        removeButton(toSlot(line, column))
+    }
+
+    fun getButton(slot: Int): GuiButton? {
+        return buttons[slot]
+    }
+
+    fun getButton(line: Int, column: Int): GuiButton? {
+        return getButton(toSlot(line, column))
+    }
+
+    fun setBorder(thickness: Int): Gui {
+        for (i in 0 until thickness) {
+            for (j in 0 until size / 9) {
+                addItemToSlot(i + j * 9, ItemStack(Material.BLACK_STAINED_GLASS_PANE))
+                addItemToSlot(8 - i + j * 9, ItemStack(Material.BLACK_STAINED_GLASS_PANE))
+            }
+        }
+        for (i in 1 until (size / 9) - 1) {
+            for (j in 0 until thickness) {
+                addItemToSlot(j + i * 9, ItemStack(Material.BLACK_STAINED_GLASS_PANE))
+                addItemToSlot(8 - j + i * 9, ItemStack(Material.BLACK_STAINED_GLASS_PANE))
+            }
+        }
+        return this
+    }
 
     fun fill(item: ItemStack) {
         for (i in 0 until inventory.size) {
@@ -51,29 +84,25 @@ abstract class Gui(title: String, lines: Int): InventoryHolder {
         }
     }
 
-    fun getButton(slot: Int): GuiButton? {
-        return buttons[slot]
+    fun setOpen(slot: Int) {
+        openSlots.add(slot)
     }
 
-    fun setBorder(thickness: Int): Gui {
-        val size = inventory.size
-        val rows = size / 9
+    fun setOpen(line: Int, column: Int) {
+        setOpen(toSlot(line, column))
+    }
 
-        for (row in 0 until rows) {
-            for (col in 0 until 9) {
-                if (row < thickness || row >= rows - thickness || col < thickness || col >= 9 - thickness) {
-                    val slot = row * 9 + col
-                    if (inventory.getItem(slot) == null) {
-                        inventory.setItem(slot, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-                    }
-                }
-            }
+    private fun addItemToSlot(slot: Int, item: ItemStack) {
+        if (inventory.getItem(slot) == null) {
+            inventory.setItem(slot, item)
         }
-        return this
     }
 
-    open fun open(entity: Player) {
-        onOpen()
-        entity.openInventory(inventory)
+    fun handleInventoryClick(event: InventoryClickEvent) {
+        val slot = event.slot
+        if (slot in openSlots) return
+        val button = buttons[slot]
+        button?.onClick(event)
+        event.isCancelled = true
     }
 }

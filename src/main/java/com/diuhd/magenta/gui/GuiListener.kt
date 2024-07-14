@@ -3,23 +3,16 @@ package com.diuhd.magenta.gui
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.plugin.java.JavaPlugin
 
 class GuiListener : Listener {
+
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
-        println("registered")
-        val inventoryHolder = event.inventory.holder as? Gui ?: return
-        val slot = event.rawSlot
-        if (slot < 0 || slot >= event.inventory.size) return
-        if (inventoryHolder.checkIfOpen(slot)) return
-
-        event.isCancelled = true
-        inventoryHolder.getButton(slot)?.onClick(event)
-    }
-    @EventHandler
-    fun onInventoryClose(event: InventoryCloseEvent) {
-        val inventoryHolder = event.inventory.holder as? Gui ?: return
-        inventoryHolder.onClose()
+        val inventory = event.inventory.holder
+        if (inventory is Gui) {
+            inventory.handleInventoryClick(event)
+            event.isCancelled = true // Prevents item from being taken out or moved
+        }
     }
 }

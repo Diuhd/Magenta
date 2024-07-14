@@ -1,59 +1,54 @@
 package com.diuhd.magenta.gui
 
-import org.bukkit.entity.Player
-import kotlin.math.ceil
-import kotlin.math.min
+import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.ItemStack
 
-abstract class PaginatedGui(title: String, lines: Int) : Gui(title, lines) {
-    private val content: MutableList<GuiButton> = mutableListOf()
+abstract class PaginatedGui(title: String, size: Int) : Gui(title, size) {
+
+    private var currentPage = 0
+    private val buttons: MutableList<GuiButton> = mutableListOf()
     private val slots: MutableList<Int> = mutableListOf()
-    protected var currentPage: Int = 0
 
-    fun setContent(newContent: List<GuiButton>, refresh: Boolean = false) {
-        content.clear()
-        content.addAll(newContent)
-        if (refresh) displayPage()
+    abstract override fun initialize()
+
+    fun setButtons(buttons: List<GuiButton>) {
+        this.buttons.clear()
+        this.buttons.addAll(buttons)
+        updatePage()
     }
 
-    fun addContent(newContent: GuiButton, refresh: Boolean = false) {
-        content.add(newContent)
-        if (refresh) displayPage()
-    }
-
-    fun setPagedSlots(vararg pagedSlots: Int, refresh: Boolean = false) {
-        slots.clear()
-        pagedSlots.forEach { slot ->
-            slots.add(slot)
-        }
-        if (refresh) displayPage()
+    fun setSlots(slots: List<Int>) {
+        this.slots.clear()
+        this.slots.addAll(slots)
+        updatePage()
     }
 
     fun nextPage() {
-        val maxPages: Int = ceil(content.size.toDouble() / slots.size.toDouble()).toInt()
-        if (currentPage < maxPages - 1) {
+        if ((currentPage + 1) * slots.size < buttons.size) {
             currentPage++
+            updatePage()
         }
-        displayPage()
     }
 
     fun previousPage() {
         if (currentPage > 0) {
             currentPage--
-        }
-        displayPage()
-    }
-
-    fun displayPage() {
-        val page: Int = currentPage
-        val startIndex: Int = (page - 1) * slots.size
-        val endIndex: Int = min(slots.size * page - 1, content.size - 1)
-        content.slice(startIndex..endIndex).forEachIndexed { index, guiButton ->
-            setButton(slots[index], guiButton)
+            updatePage()
         }
     }
 
-    override fun open(entity: Player) {
-        displayPage()
-        super.open(entity)
+    private fun updatePage() {
+        clearButtons()
+        val startIndex = currentPage * slots.size
+        val endIndex = (startIndex + slots.size).coerceAtMost(buttons.size)
+        for (i in startIndex until endIndex) {
+            addButton(slots[i - startIndex], buttons[i])
+        }
+    }
+
+    private fun clearButtons() {
+        for (slot in slots) {
+            removeButton(slot)
+        }
     }
 }
