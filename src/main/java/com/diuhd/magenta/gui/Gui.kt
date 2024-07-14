@@ -35,7 +35,7 @@ abstract class Gui(title: String, private val size: Int) : InventoryHolder {
         return (line - 1) * 9 + (column - 1)
     }
 
-    private fun open(player: Player) {
+    fun open(player: Player) {
         player.openInventory(inventory)
     }
 
