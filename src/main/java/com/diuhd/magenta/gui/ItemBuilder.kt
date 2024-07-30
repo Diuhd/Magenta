@@ -32,9 +32,7 @@ class ItemBuilder(mat: Material) {
     }
     fun addLore(lore: String): ItemBuilder {
         val existentLore = itemMeta.lore
-        if (existentLore != null) {
-            itemMeta.lore = existentLore.toMutableList() + lore
-        }
+        if (existentLore == null) itemMeta.lore = listOf(lore) else itemMeta.lore = existentLore.toMutableList() + lore
         return this
     }
     fun setTag(key: String): ItemBuilder {

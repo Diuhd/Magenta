@@ -1,15 +1,10 @@
 package com.diuhd.magenta.gui
 
-import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.inventory.ItemStack
-
 abstract class PaginatedGui(title: String, size: Int) : Gui(title, size) {
 
     private var currentPage = 0
     private val buttons: MutableList<GuiButton> = mutableListOf()
     private val slots: MutableList<Int> = mutableListOf()
-
-    abstract override fun initialize()
 
     fun setButtons(buttons: List<GuiButton>) {
         this.buttons.clear()

@@ -6,13 +6,14 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.plugin.java.JavaPlugin
 
 class GuiListener : Listener {
-
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
         val inventory = event.inventory.holder
         if (inventory is Gui) {
+            event.isCancelled = true
             inventory.handleInventoryClick(event)
-            event.isCancelled = true // Prevents item from being taken out or moved
+        } else {
+            println("Non GUI click event passed")
         }
     }
 }

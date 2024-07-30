@@ -15,17 +15,16 @@ abstract class Gui(title: String, private val size: Int) : InventoryHolder {
     private val openSlots: MutableSet<Int> = mutableSetOf()
 
     companion object {
-        private var initialized: Boolean = false
-    }
-
-    init {
-        if (!initialized) {
-            val plugin: JavaPlugin = JavaPlugin.getProvidingPlugin(Gui::class.java)
-            plugin.server.pluginManager.registerEvents(GuiListener(), plugin)
+        private var eventInit: Boolean = false
+        init {
+            if (!eventInit) {
+                val plugin: JavaPlugin = JavaPlugin.getProvidingPlugin(Gui::class.java)
+                plugin.logger.info("Magenta Gui Listeners are initialized!")
+                plugin.server.pluginManager.registerEvents(GuiListener(), plugin)
+                eventInit = true
+            }
         }
     }
-
-    abstract fun initialize()
 
     override fun getInventory(): Inventory {
         return inventory
@@ -37,6 +36,14 @@ abstract class Gui(title: String, private val size: Int) : InventoryHolder {
 
     fun open(player: Player) {
         player.openInventory(inventory)
+    }
+
+    fun close() {
+        for (player in Bukkit.getOnlinePlayers()) {
+            if (player.openInventory.topInventory.holder == this) {
+                player.closeInventory()
+            }
+        }
     }
 
     fun addButton(slot: Int, button: GuiButton) {
