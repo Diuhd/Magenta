@@ -3,21 +3,21 @@
   <groupId>com.diuhd</groupId>
   <artifactId>Magenta</artifactId>
   <versioning>
-    <lastUpdated>20240730115529</lastUpdated>
+    <lastUpdated>20240801061449</lastUpdated>
     <snapshot>
-      <timestamp>20240730.115529</timestamp>
+      <timestamp>20240801.061449</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
         <extension>pom</extension>
-        <value>1.0-20240730.115529-1</value>
-        <updated>20240730115529</updated>
+        <value>1.0-20240801.061449-1</value>
+        <updated>20240801061449</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>jar</extension>
-        <value>1.0-20240730.115529-1</value>
-        <updated>20240730115529</updated>
+        <value>1.0-20240801.061449-1</value>
+        <updated>20240801061449</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
